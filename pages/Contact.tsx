@@ -2,19 +2,31 @@ import React, { useState } from 'react';
 import { SectionTitle } from '../components/SectionTitle';
 import { Button } from '../components/Button';
 import { Send } from 'lucide-react';
+import { api } from '../services/api';
 
 export const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate saving to admin panel (in a real app, this goes to backend)
-    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
-    messages.push({ ...formData, id: Date.now(), date: new Date().toLocaleDateString() });
-    localStorage.setItem('messages', JSON.stringify(messages));
-    
-    alert("Message sent! Check the admin panel.");
-    setFormData({ name: '', email: '', message: '' });
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    const result = await api.submitContactForm(formData);
+
+    if (result.status === 'success') {
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', phone: '', company: '', message: '' });
+      // Reset success message after 5 seconds
+      setTimeout(() => setSubmitStatus('idle'), 5000);
+    } else {
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus('idle'), 5000);
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -32,13 +44,23 @@ export const Contact: React.FC = () => {
                        <p><span className="font-bold block">Address:</span> Cyber City, Gurugram, India</p>
                    </div>
                </div>
-               
+
                <div className="bg-gray-50 p-10 rounded-[3rem]">
+                   {submitStatus === 'success' && (
+                       <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-xl">
+                           ✓ Message sent successfully! We'll get back to you soon.
+                       </div>
+                   )}
+                   {submitStatus === 'error' && (
+                       <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-xl">
+                           ✕ Failed to send message. Please try again.
+                       </div>
+                   )}
                    <form onSubmit={handleSubmit} className="space-y-6">
                        <div>
                            <label className="block text-sm font-bold uppercase tracking-widest mb-2">Name</label>
-                           <input 
-                               type="text" 
+                           <input
+                               type="text"
                                required
                                className="w-full bg-white border border-gray-200 p-4 rounded-xl focus:outline-none focus:border-black transition-colors"
                                placeholder="Your name"
@@ -48,8 +70,8 @@ export const Contact: React.FC = () => {
                        </div>
                        <div>
                            <label className="block text-sm font-bold uppercase tracking-widest mb-2">Email</label>
-                           <input 
-                               type="email" 
+                           <input
+                               type="email"
                                required
                                className="w-full bg-white border border-gray-200 p-4 rounded-xl focus:outline-none focus:border-black transition-colors"
                                placeholder="your@email.com"
@@ -58,8 +80,28 @@ export const Contact: React.FC = () => {
                            />
                        </div>
                        <div>
+                           <label className="block text-sm font-bold uppercase tracking-widest mb-2">Phone (Optional)</label>
+                           <input
+                               type="tel"
+                               className="w-full bg-white border border-gray-200 p-4 rounded-xl focus:outline-none focus:border-black transition-colors"
+                               placeholder="+91 98765 43210"
+                               value={formData.phone}
+                               onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                           />
+                       </div>
+                       <div>
+                           <label className="block text-sm font-bold uppercase tracking-widest mb-2">Company (Optional)</label>
+                           <input
+                               type="text"
+                               className="w-full bg-white border border-gray-200 p-4 rounded-xl focus:outline-none focus:border-black transition-colors"
+                               placeholder="Your company"
+                               value={formData.company}
+                               onChange={(e) => setFormData({...formData, company: e.target.value})}
+                           />
+                       </div>
+                       <div>
                            <label className="block text-sm font-bold uppercase tracking-widest mb-2">Message</label>
-                           <textarea 
+                           <textarea
                                required
                                rows={4}
                                className="w-full bg-white border border-gray-200 p-4 rounded-xl focus:outline-none focus:border-black transition-colors"
@@ -68,8 +110,8 @@ export const Contact: React.FC = () => {
                                onChange={(e) => setFormData({...formData, message: e.target.value})}
                            ></textarea>
                        </div>
-                       <Button type="submit" fullWidth className="bg-black text-white rounded-xl">
-                           Send Message <Send className="w-4 h-4" />
+                       <Button type="submit" fullWidth disabled={isSubmitting} className="bg-black text-white rounded-xl">
+                           {isSubmitting ? 'Sending...' : 'Send Message'} <Send className="w-4 h-4" />
                        </Button>
                    </form>
                </div>
