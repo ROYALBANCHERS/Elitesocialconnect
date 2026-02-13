@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, ScrollRestoration } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
@@ -14,11 +14,11 @@ import { Blog } from './pages/Blog';
 
 // ScrollToTop component to ensure pages start at top on navigation
 const ScrollToTop = () => {
-  const { pathname } = React.useMemo(() => new URL(window.location.href), [window.location.href]);
-  
+  const location = useLocation();
+
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [location.pathname]);
 
   return null;
 }
@@ -26,7 +26,7 @@ const ScrollToTop = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <ScrollToTop /> {/* Simulating scroll restoration manually for HashRouter if needed, or just let default behavior work */}
+      <ScrollToTop />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
