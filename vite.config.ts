@@ -18,6 +18,17 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      // GitHub Pages requires this configuration
+      base: mode === 'production' ? '/Elitesocialconnect/' : '/',
+      build: {
+        outDir: 'dist',
+        sourcemap: true,
+        rollupOptions: {
+          output: {
+            manualChunks: undefined
+          }
+        }
       }
     };
 });
